@@ -11,7 +11,7 @@ def find_all_file(base):
 
 
 if __name__ == '__main__':
-    base_url = "https://ftp.mcstaralliance.com/lastupdate/"
+    base_url = "https://resources.mcstaralliance.com/lastupdate/"
     sync_dirs = ["scripts", "resources"]
     file_list = []
     for sync_dir in sync_dirs:

@@ -71,7 +71,7 @@ public class MirrorSync {
         String autoUpdateControl = HttpUtils.syncGetString("https://gitee.com/xiaoyecreate/auto-update-control/raw/master/config.txt");
         if(autoUpdateControl.equalsIgnoreCase("true")){
             logger.atInfo().log("Basedir:" + basedir);
-            String url = "https://ftp.mcstaralliance.com/lastupdate/manifest.json";
+            String url = "https://resources.mcstaralliance.com/lastupdate/manifest.json";
             String json = HttpUtils.syncGetString(url);
             ArrayList<FileBean> fileBeans = JsonUtils.parseFileBeansJson(json);
             cleanLocalFiles(fileBeans, FileUtils.travel(new File(hasMinecraft ? "scripts" : ".minecraft/scripts")));
