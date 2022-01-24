@@ -1,0 +1,18 @@
+[
+  {
+    "modid": "mirrorsync",
+    "name": "MirrorSync",
+    "description": "Mirror Sync",
+    "version": "${version}",
+    "mcversion": "${mcversion}",
+    "url": "https://xtuy.cn",
+    "updateUrl": "",
+    "authorList": [
+      "Ylarod"
+    ],
+    "credits": "",
+    "logoFile": "",
+    "screenshots": [],
+    "dependencies": []
+  }
+]
