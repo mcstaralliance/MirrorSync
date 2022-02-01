@@ -28,7 +28,7 @@ if __name__ == '__main__':
             }
             file_list.append(one)
     for sync_file in sync_files:
-        path = sync_file.replace("\\", "/")
+        path = ".minecraft/" + sync_file.replace("\\", "/")
         name = path[path.rfind("/") + 1:]
         with open(name, 'rb') as fp:
             data = fp.read()
