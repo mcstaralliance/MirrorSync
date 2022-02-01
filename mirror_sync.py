@@ -17,7 +17,7 @@ if __name__ == '__main__':
     file_list = []
     for sync_dir in sync_dirs:
         for name, path in find_all_file(".minecraft/" + sync_dir):
-            with open(name, 'rb') as fp:
+            with open(path, 'rb') as fp:
                 data = fp.read()
             file_md5 = hashlib.md5(data).hexdigest()
             one = {
@@ -30,7 +30,7 @@ if __name__ == '__main__':
     for sync_file in sync_files:
         path = ".minecraft/" + sync_file.replace("\\", "/")
         name = path[path.rfind("/") + 1:]
-        with open(name, 'rb') as fp:
+        with open(path, 'rb') as fp:
             data = fp.read()
         file_md5 = hashlib.md5(data).hexdigest()
         one = {
