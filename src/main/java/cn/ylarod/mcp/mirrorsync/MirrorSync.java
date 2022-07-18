@@ -68,7 +68,7 @@ public class MirrorSync {
         if (basedir.contains(".minecraft")){
             hasMinecraft = true;
         }
-        String autoUpdateControl = HttpUtils.syncGetString("https://gitee.com/xiaoyecreate/auto-update-control/raw/master/config.txt");
+        String autoUpdateControl = HttpUtils.syncGetString("https://resource.mcstaralliance.com/lastupdate/switch.txt");
         if(autoUpdateControl.equalsIgnoreCase("true")){
             logger.atInfo().log("Basedir:" + basedir);
             String url = "https://resource.mcstaralliance.com/lastupdate/manifest.json";
