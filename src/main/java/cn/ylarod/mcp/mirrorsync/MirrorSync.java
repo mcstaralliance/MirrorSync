@@ -36,15 +36,11 @@ public class MirrorSync {
     public static final Logger logger = LogManager.getLogger(MOD_ID);
 
     /**
-     * This is the instance of your mod as created by Forge. It will never be null.
+     * Powered by StarAlliance
      */
     @Mod.Instance(MOD_ID)
     public static MirrorSync INSTANCE;
 
-    /**
-     * This is the first initialization event. Register tile entities here.
-     * The registry events below will have fired prior to entry to this method.
-     */
 
     public void cleanLocalFiles(ArrayList<FileBean> fileBeans, ArrayList<File> localFiles){
         for(File file : localFiles){
@@ -98,17 +94,11 @@ public class MirrorSync {
         }
     }
 
-    /**
-     * This is the second initialization event. Register custom recipes
-     */
     @Mod.EventHandler
     public void init(FMLInitializationEvent event) {
 
     }
 
-    /**
-     * This is the final initialization event. Register actions from other mods here
-     */
     @Mod.EventHandler
     public void postInit(FMLPostInitializationEvent event) {
 

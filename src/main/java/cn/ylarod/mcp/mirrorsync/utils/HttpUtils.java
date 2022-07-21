@@ -14,13 +14,16 @@ import okhttp3.Request;
 import okhttp3.Response;
 import org.jetbrains.annotations.NotNull;
 
+/**
+ * @author 星域联盟 Ylarod
+ */
 
 public class HttpUtils {
     private static String result = null;
     private static InputStream is = null;
 
     /**
-     * 阻塞post
+     * 阻塞 post
      */
     public static String syncPost(String url, String param) {
         final CountDownLatch lt = new CountDownLatch(1);
@@ -65,7 +68,7 @@ public class HttpUtils {
     }
 
     /**
-     * 阻塞get
+     * 阻塞 get
      */
     public static InputStream syncGet(String url) {
         final CountDownLatch lt = new CountDownLatch(1);

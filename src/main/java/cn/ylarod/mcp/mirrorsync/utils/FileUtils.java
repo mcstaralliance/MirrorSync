@@ -6,6 +6,10 @@ import java.io.*;
 import java.util.ArrayList;
 import java.util.Stack;
 
+/**
+ * @author 星域联盟 Ylarod
+ */
+
 public class FileUtils {
     public static String getFileMD5(String filepath){
         try {
@@ -24,8 +28,8 @@ public class FileUtils {
             bos = new BufferedOutputStream(new FileOutputStream(des));
             byte[] bys = new byte[1024];
             int len;
-            while ((len = bis.read(bys)) != -1) { //读入bys.len长度的数据放入bys中，并返回字节长度
-                bos.write(bys, 0, len); //将字节数组bys[0~len]写入
+            while ((len = bis.read(bys)) != -1) { // 读入 bys.len 长度的数据放入 bys 中，并返回字节长度
+                bos.write(bys, 0, len); // 将字节数组 bys[0~len] 写入
             }
         } catch (Exception e) {
             e.printStackTrace();

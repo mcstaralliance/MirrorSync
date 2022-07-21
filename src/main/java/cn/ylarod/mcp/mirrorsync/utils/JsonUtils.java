@@ -9,6 +9,10 @@ import com.google.gson.JsonParser;
 
 import java.util.ArrayList;
 
+/**
+ * @author 星域联盟 Ylarod
+ */
+
 public class JsonUtils {
     public static ArrayList<FileBean> parseFileBeansJson(String jsonString){
         ArrayList<FileBean> fileBeans = new ArrayList<>();
