@@ -4,22 +4,16 @@ import cn.ylarod.mcp.mirrorsync.bean.FileBean;
 import cn.ylarod.mcp.mirrorsync.utils.FileUtils;
 import cn.ylarod.mcp.mirrorsync.utils.HttpUtils;
 import cn.ylarod.mcp.mirrorsync.utils.JsonUtils;
-import net.minecraft.block.Block;
-import net.minecraft.item.Item;
-import net.minecraftforge.event.RegistryEvent;
+import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.event.FMLInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPostInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
-import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.common.registry.GameRegistry;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.io.File;
 import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.Objects;
 
 @Mod(
         modid = MirrorSync.MOD_ID,
@@ -73,9 +67,12 @@ public class MirrorSync {
             cleanLocalFiles(fileBeans, FileUtils.travel(new File(hasMinecraft ? "scripts" : ".minecraft/scripts")));
             cleanLocalFiles(fileBeans, FileUtils.travel(new File(hasMinecraft ? "resources" : ".minecraft/resources")));
             for(FileBean fileBean : fileBeans){
-                String file_hash = FileUtils.getFileMD5(fileBean.savePath);
                 String save_path = hasMinecraft ? fileBean.savePath.replaceAll(".minecraft/", "") : fileBean.savePath;
-                if(file_hash.equalsIgnoreCase("")){
+                String file_hash = FileUtils.getFileMD5(save_path);
+                if (fileBean.hash.equalsIgnoreCase("DELETE")) {
+                    logger.atInfo().log("Delete: " + fileBean.filename);
+                    new File(save_path).delete();
+                }else if(file_hash.equalsIgnoreCase("")){
                     logger.atError().log("Cannot check file: " + fileBean.filename);
                     File path = new File(save_path).getParentFile();
                     if(!path.exists()){
