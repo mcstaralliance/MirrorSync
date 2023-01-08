@@ -70,8 +70,11 @@ public class MirrorSync {
                 String save_path = hasMinecraft ? fileBean.savePath.replaceAll(".minecraft/", "") : fileBean.savePath;
                 String file_hash = FileUtils.getFileMD5(save_path);
                 if (fileBean.hash.equalsIgnoreCase("DELETE")) {
-                    logger.atInfo().log("Delete: " + fileBean.filename);
-                    new File(save_path).delete();
+                    File file = new File(save_path);
+                    if (file.exists()){
+                        logger.atInfo().log("Delete: " + fileBean.filename);
+                        file.delete();
+                    }
                 }else if(file_hash.equalsIgnoreCase("")){
                     logger.atError().log("Cannot check file: " + fileBean.filename);
                     File path = new File(save_path).getParentFile();
