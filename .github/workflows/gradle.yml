@@ -1,4 +1,4 @@
-name: Java CI with Gradle
+name: MirrorSync
 
 on:
   push:
@@ -29,11 +29,12 @@ jobs:
     - name: Build with Gradle Wrapper
       run: ./gradlew build
 
-    - name: Upload a Build Artifact
+    - name: 上传构件
       uses: actions/upload-artifact@v4.6.1
       with:
-        name: ${{ steps.findjar.outputs.jarname }}
-        path: build/libs/${{ steps.findjar.outputs.jarname }}
+        name: MirrorSync
+        path: build/libs/*.jar
+
 
   dependency-submission:
     runs-on: ubuntu-latest
