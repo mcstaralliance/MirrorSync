@@ -2,6 +2,10 @@ import os
 import json
 import hashlib
 from qcloud_cos import CosConfig, CosS3Client
+from tencentcloud.common import credential
+from tencentcloud.common.profile.client_profile import ClientProfile
+from tencentcloud.common.profile.http_profile import HttpProfile
+from tencentcloud.cdn.v20180606 import cdn_client, models
 
 # 配置开关
 upload_to_cos = False  # 如果设置为 True，开启自动上传和 CDN 刷新；False 时只生成 manifest.json
@@ -12,6 +16,19 @@ secret_key = 'your-secret-key'  # 替换为您的 SecretKey
 region = 'ap-beijing'  # 替换为您的 region
 bucket_name = 'your-bucket-name'  # 替换为您的存储桶名称
 base_url = "https://resource.mcstaralliance.com/lastupdate/"
+
+
+# 初始化 COS 客户端
+config = CosConfig(Region=region, SecretId=secret_id, SecretKey=secret_key)
+client = CosS3Client(config)
+
+# 初始化 CDN 客户端
+cred = credential.Credential(secret_id, secret_key)
+http_profile = HttpProfile()
+http_profile.endpoint = "cdn.tencentcloudapi.com"
+client_profile = ClientProfile()
+client_profile.httpProfile = http_profile
+cdn_client = cdn_client.CdnClient(cred, region, client_profile)
 
 def find_all_file(base):
     """遍历目录中的所有文件"""
@@ -55,8 +72,16 @@ def refresh_cdn(file_path):
     """刷新文件的 CDN 缓存"""
     refresh_url = f"{base_url}{file_path}"
     try:
-        # 这里使用 CDN 刷新 SDK，如果你使用腾讯云的 SDK
-        # response = cdn_client.refresh_urls([refresh_url])
+        # 创建请求对象
+        req = models.PurgePathCacheRequest()
+        params = {
+            "Paths": [refresh_url],
+            "FlushType": "flush"  # 可选值：flush（刷新全部资源），delete（刷新变更资源）
+        }
+        req.from_json_string(json.dumps(params))
+
+        # 调用接口
+        resp = cdn_client.PurgePathCache(req)
         print(f"CDN 刷新成功: {refresh_url}")
     except Exception as e:
         print(f"CDN 刷新失败: {e}")
@@ -110,6 +135,9 @@ if __name__ == '__main__':
     manifest_path = 'manifest.json'
     with open(manifest_path, 'w', encoding='utf-8') as f:
         json.dump(file_list, f, ensure_ascii=False, indent=4)
+
+    # 提示文件已经生成
+    print(f"manifest.json 文件已生成{'并上传到 COS' if upload_to_cos else ''}")
 
     # 仅上传 manifest.json 当开关开启时
     if upload_to_cos:
