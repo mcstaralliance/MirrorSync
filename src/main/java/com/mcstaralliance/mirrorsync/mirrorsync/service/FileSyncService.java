@@ -1,5 +1,6 @@
 package com.mcstaralliance.mirrorsync.mirrorsync.service;
 
+import com.mcstaralliance.mirrorsync.mirrorsync.model.RemoteUpdateEntry;
 import com.mcstaralliance.mirrorsync.mirrorsync.util.WithRetry;
 import com.mcstaralliance.mirrorsync.mirrorsync.model.RemoteRegistryEntry;
 import com.mcstaralliance.mirrorsync.mirrorsync.worker.FileSyncWorker;
@@ -63,12 +64,23 @@ public class FileSyncService {
             // To make compiler happy
             final ExecutorService finalExecutorService = executorService;
 
-            @SuppressWarnings("rawtypes") CompletableFuture[] completableFutures = remoteRegistryEntries.stream()
+            @SuppressWarnings("rawtypes")
+            CompletableFuture[] completableFutures = remoteRegistryEntries.stream()
                     .map(entry -> WithRetry.withRetry(new FileSyncWorker(entry, minecraftPath, networkService, messageDigest::get), 3, finalExecutorService))
                     .toArray(CompletableFuture[]::new);
 
             CompletableFuture.allOf(completableFutures).join();
 
+            List<RemoteUpdateEntry> remoteUpdateEntries = networkService.retrieveRemoteUpdateEntries();
+
+            logger.info("Retried remote update entries: {}", remoteUpdateEntries);
+
+            completableFutures = remoteRegistryEntries.stream()
+                    .map(entry -> WithRetry.withRetry(new FileSyncWorker(entry, minecraftPath, networkService, messageDigest::get), 3, finalExecutorService))
+                    .toArray(CompletableFuture[]::new);
+
+            CompletableFuture.allOf(completableFutures).join();
+            
         } catch (IOException e) {
             throw new RuntimeException(e);
         } finally {

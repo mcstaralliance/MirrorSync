@@ -32,7 +32,7 @@ public class FileSyncWorker implements Runnable {
 
     private byte[] getRemoteDigest() {
         if (remoteDigest == null) {
-            remoteDigest = HexFormat.of().parseHex(registryEntry.getHash());
+            remoteDigest = HexFormat.of().parseHex(registryEntry.hash());
         }
         return remoteDigest;
     }
@@ -48,7 +48,7 @@ public class FileSyncWorker implements Runnable {
     @Override
     public void run() {
 
-        Path savePath = Path.of(registryEntry.getSavePath());
+        Path savePath = Path.of(registryEntry.savePath());
 
         if (savePath.startsWith(".minecraft")) {
             savePath = savePath.subpath(1, savePath.getNameCount());
@@ -58,27 +58,27 @@ public class FileSyncWorker implements Runnable {
 
         try {
             if (!shouldDownload(localFilePath)) {
-                logger.info("Registry entry ({}) with local ({}) is up to date!", registryEntry.getFilename(), localFilePath);
+                logger.info("Registry entry ({}) with local ({}) is up to date!", registryEntry.filename(), localFilePath);
                 return;
             }
 
-            logger.info("Start syncing registry entry ({})", registryEntry.getFilename());
+            logger.info("Start syncing registry entry ({})", registryEntry.filename());
 
             ensureExists(localFilePath);
 
-            networkService.downloadFile(URI.create(registryEntry.getDownloadUrl()), localFilePath);
+            networkService.downloadFile(URI.create(registryEntry.downloadUrl()), localFilePath);
 
-            logger.info("Downloaded registry entry ({}) to local ({}) from remote ({})", registryEntry.getFilename(), localFilePath, registryEntry.getDownloadUrl());
+            logger.info("Downloaded registry entry ({}) to local ({}) from remote ({})", registryEntry.filename(), localFilePath, registryEntry.downloadUrl());
 
             if (!Arrays.equals(checkSumOf(localFilePath), getRemoteDigest())) {
-                String message = String.format("Registry entry (%s) check sum failed", registryEntry.getFilename());
+                String message = String.format("Registry entry (%s) check sum failed", registryEntry.filename());
                 logger.warn(message);
                 throw new RuntimeException(message);
             }
-            logger.info("Synced registry entry ({}) from remote ({}) to local ({})", registryEntry.getFilename(), registryEntry.getDownloadUrl(), localFilePath);
+            logger.info("Synced registry entry ({}) from remote ({}) to local ({})", registryEntry.filename(), registryEntry.downloadUrl(), localFilePath);
 
         } catch (IOException e) {
-            throw new RuntimeException(String.format("Sync registry entry (%s) failed", registryEntry.getFilename()), e);
+            throw new RuntimeException(String.format("Sync registry entry (%s) failed", registryEntry.filename()), e);
         }
     }
 

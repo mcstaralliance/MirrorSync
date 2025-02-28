@@ -4,6 +4,7 @@ package com.mcstaralliance.mirrorsync.mirrorsync.service;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.mcstaralliance.mirrorsync.mirrorsync.model.RemoteRegistryEntry;
+import com.mcstaralliance.mirrorsync.mirrorsync.model.RemoteUpdateEntry;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.CloseableHttpClient;
@@ -42,6 +43,12 @@ public class NetworkService implements AutoCloseable {
              ReadableByteChannel responseContentChannel = Channels.newChannel(response.getEntity().getContent())
         ) {
             localFileChannel.transferFrom(responseContentChannel, 0, response.getEntity().getContentLength());
+        }
+    }
+
+    public List<RemoteUpdateEntry> retrieveRemoteUpdateEntries() throws IOException {
+        try (CloseableHttpResponse response = httpClient.execute(new HttpGet("https://resource.mcstaralliance.com/lastupdate/update.json"))) {
+            return gson.fromJson(new BufferedReader(new InputStreamReader(response.getEntity().getContent())), new TypeToken<>() {});
         }
     }
 
