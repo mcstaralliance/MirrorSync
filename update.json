@@ -1,0 +1,6 @@
+[
+    {
+        "dirPath": "kubejs",
+        "children": [ "a.js", "b.js" ]
+    }
+]
