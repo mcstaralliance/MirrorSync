@@ -9,6 +9,7 @@ from tencentcloud.cdn.v20180606 import cdn_client, models
 
 # 配置开关
 upload_to_cos = False  # 如果设置为 True，开启自动上传和 CDN 刷新；False 时只生成 manifest.json
+update_dirs = []
 
 # 腾讯云 COS 配置
 secret_id = 'your-secret-id'  # 替换为您的 SecretId
@@ -34,8 +35,9 @@ def find_all_file(base):
     """遍历目录中的所有文件"""
     for root, dirs, files in os.walk(base):
         for file in files:
-            filepath = os.path.join(root, file)
-            yield file, filepath
+            for dir in dirs:
+                filepath = os.path.join(root, file)
+                yield file, filepath, os.path.join(root, dir)
 
 def upload_file_to_cos(local_path, cos_path):
     """上传文件到腾讯云 COS，如果文件已存在且不同则覆盖"""
@@ -90,10 +92,11 @@ if __name__ == '__main__':
     sync_dirs = ["resources"]  # 需要同步的目录
     sync_files = []  # 需要同步的单个文件（如果有的话）
     file_list = []
+    dirs_to_update = []
 
     # 遍历目录同步文件
     for sync_dir in sync_dirs:
-        for name, path in find_all_file(".minecraft/" + sync_dir):
+        for name, path, current_dir in find_all_file(".minecraft/" + sync_dir):
             with open(path, 'rb') as fp:
                 data = fp.read()
             file_md5 = hashlib.md5(data).hexdigest()
@@ -104,6 +107,14 @@ if __name__ == '__main__':
                 "downloadUrl": base_url + path.replace("./", "").replace("\\", "/").replace(".minecraft/", "")
             }
             file_list.append(one)
+
+            for dir_to_update in update_dirs:
+                if dir_to_update in current_dir:
+                    dirs_to_update.append({
+                        "dirPath": current_dir,
+                        "children": None # Need help
+                    })
+                    
 
             if upload_to_cos:  # 如果开关开启，上传文件
                 cos_path = "lastupdate/" + path.replace(".minecraft/", "")
