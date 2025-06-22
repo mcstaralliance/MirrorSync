@@ -3,6 +3,7 @@ package com.mcstaralliance.mirrorsync.mirrorsync.service;
 import com.mcstaralliance.mirrorsync.mirrorsync.model.RemoteUpdateEntry;
 import com.mcstaralliance.mirrorsync.mirrorsync.util.WithRetry;
 import com.mcstaralliance.mirrorsync.mirrorsync.model.RemoteRegistryEntry;
+import com.mcstaralliance.mirrorsync.mirrorsync.worker.FileDeleteWorker;
 import com.mcstaralliance.mirrorsync.mirrorsync.worker.FileSyncWorker;
 import com.mojang.logging.LogUtils;
 import org.slf4j.Logger;
@@ -75,8 +76,8 @@ public class FileSyncService {
 
             logger.info("Retried remote update entries: {}", remoteUpdateEntries);
 
-            completableFutures = remoteRegistryEntries.stream()
-                    .map(entry -> WithRetry.withRetry(new FileSyncWorker(entry, minecraftPath, networkService, messageDigest::get), 3, finalExecutorService))
+            completableFutures = remoteUpdateEntries.stream()
+                    .map(entry -> WithRetry.withRetry(new FileDeleteWorker(entry, minecraftPath), 3, finalExecutorService))
                     .toArray(CompletableFuture[]::new);
 
             CompletableFuture.allOf(completableFutures).join();
