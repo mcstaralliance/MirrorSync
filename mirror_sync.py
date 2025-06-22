@@ -208,8 +208,3 @@ if __name__ == '__main__':
         if dirs_to_update:
             upload_file_to_cos(dirs_manifest_path, "lastupdate/dirs_manifest.json")
 
-    # 将软硬更新表写入 update.json
-    update_path = 'update.json'
-    with open(update_path, 'w', encoding='utf-8') as f:
-        json.dump(dirs_to_update, f, ensure_ascii=False, indent=4)
-    print("update.json 文件已生成")
