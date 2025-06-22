@@ -47,7 +47,7 @@ public class NetworkService implements AutoCloseable {
     }
 
     public List<RemoteUpdateEntry> retrieveRemoteUpdateEntries() throws IOException {
-        try (CloseableHttpResponse response = httpClient.execute(new HttpGet("https://resource.mcstaralliance.com/lastupdate/update.json"))) {
+        try (CloseableHttpResponse response = httpClient.execute(new HttpGet("https://resource.mcstaralliance.com/lastupdate/dir_manifest.json"))) {
             return gson.fromJson(new BufferedReader(new InputStreamReader(response.getEntity().getContent())), new TypeToken<>() {});
         }
     }

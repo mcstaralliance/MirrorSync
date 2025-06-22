@@ -35,9 +35,40 @@ def find_all_file(base):
     """遍历目录中的所有文件"""
     for root, dirs, files in os.walk(base):
         for file in files:
-            for dir in dirs:
+            filepath = os.path.join(root, file)
+            yield file, filepath, root
+        for dir in dirs:
+            dirpath = os.path.join(root, dir)
+            yield None, None, dirpath
+
+def get_directory_contents(dir_path):
+    """获取目录的所有子文件和子目录"""
+    contents = []
+    for root, dirs, files in os.walk(dir_path):
+        # 只获取当前目录的内容，不递归
+        if root == dir_path:
+            for file in files:
                 filepath = os.path.join(root, file)
-                yield file, filepath, os.path.join(root, dir)
+                with open(filepath, 'rb') as fp:
+                    data = fp.read()
+                file_md5 = hashlib.md5(data).hexdigest()
+                rel_path = filepath.replace(dir_path + os.sep, "")
+                contents.append({
+                    "type": "file",
+                    "name": file,
+                    "hash": file_md5,
+                    "path": rel_path
+                })
+
+            for dir in dirs:
+                dirpath = os.path.join(root, dir)
+                contents.append({
+                    "type": "directory",
+                    "name": dir,
+                    "path": dir
+                })
+            break
+    return contents
 
 def upload_file_to_cos(local_path, cos_path):
     """上传文件到腾讯云 COS，如果文件已存在且不同则覆盖"""
@@ -94,31 +125,40 @@ if __name__ == '__main__':
     file_list = []
     dirs_to_update = []
 
+    # 用于跟踪已处理的目录，避免重复
+    processed_dirs = set()
+
     # 遍历目录同步文件
     for sync_dir in sync_dirs:
         for name, path, current_dir in find_all_file(".minecraft/" + sync_dir):
-            with open(path, 'rb') as fp:
-                data = fp.read()
-            file_md5 = hashlib.md5(data).hexdigest()
-            one = {
-                "filename": name,
-                "hash": file_md5,
-                "savePath": path.replace("\\", "/"),
-                "downloadUrl": base_url + path.replace("./", "").replace("\\", "/").replace(".minecraft/", "")
-            }
-            file_list.append(one)
+            # 处理文件
+            if name and path:
+                with open(path, 'rb') as fp:
+                    data = fp.read()
+                file_md5 = hashlib.md5(data).hexdigest()
+                one = {
+                    "filename": name,
+                    "hash": file_md5,
+                    "savePath": path.replace("\\", "/"),
+                    "downloadUrl": base_url + path.replace("./", "").replace("\\", "/").replace(".minecraft/", "")
+                }
+                file_list.append(one)
 
-            for dir_to_update in update_dirs:
-                if dir_to_update in current_dir:
-                    dirs_to_update.append({
-                        "dirPath": current_dir,
-                        "children": None # Need help
-                    })
-                    
+                if upload_to_cos:  # 如果开关开启，上传文件
+                    cos_path = "lastupdate/" + path.replace(".minecraft/", "")
+                    upload_file_to_cos(path, cos_path)
 
-            if upload_to_cos:  # 如果开关开启，上传文件
-                cos_path = "lastupdate/" + path.replace(".minecraft/", "")
-                upload_file_to_cos(path, cos_path)
+            # 处理目录
+            if current_dir:
+                for dir_to_update in update_dirs:
+                    if dir_to_update in current_dir and current_dir not in processed_dirs:
+                        # 获取目录的子文件和子目录
+                        children = get_directory_contents(current_dir)
+                        dirs_to_update.append({
+                            "dirPath": current_dir.replace("\\", "/"),
+                            "children": children
+                        })
+                        processed_dirs.add(current_dir)
 
     # 遍历指定的单个文件
     for sync_file in sync_files:
@@ -142,10 +182,21 @@ if __name__ == '__main__':
     # 打印 file_list 以供预览
     print(json.dumps(file_list, ensure_ascii=False, indent=4))
 
+    # 打印 dirs_to_update 以供预览
+    print("更新目录列表:")
+    print(json.dumps(dirs_to_update, ensure_ascii=False, indent=4))
+
     # 将文件列表写入 manifest.json
     manifest_path = 'manifest.json'
     with open(manifest_path, 'w', encoding='utf-8') as f:
         json.dump(file_list, f, ensure_ascii=False, indent=4)
+
+    # 可选：将目录更新信息写入另一个文件
+    if dirs_to_update:
+        dirs_manifest_path = 'dirs_manifest.json'
+        with open(dirs_manifest_path, 'w', encoding='utf-8') as f:
+            json.dump(dirs_to_update, f, ensure_ascii=False, indent=4)
+        print(f"dirs_manifest.json 文件已生成")
 
     # 提示文件已经生成
     print("manifest.json 文件已生成")
@@ -154,6 +205,8 @@ if __name__ == '__main__':
     if upload_to_cos:
         upload_file_to_cos(manifest_path, "lastupdate/manifest.json")
         print("manifest.json 文件已上传到 COS")
+        if dirs_to_update:
+            upload_file_to_cos(dirs_manifest_path, "lastupdate/dirs_manifest.json")
 
     # 将软硬更新表写入 update.json
     update_path = 'update.json'
