@@ -148,10 +148,15 @@ if __name__ == '__main__':
         json.dump(file_list, f, ensure_ascii=False, indent=4)
 
     # 提示文件已经生成
-    print(f"manifest.json 文件已生成{'并上传到 COS' if upload_to_cos else ''}")
+    print("manifest.json 文件已生成")
 
     # 仅上传 manifest.json 当开关开启时
     if upload_to_cos:
         upload_file_to_cos(manifest_path, "lastupdate/manifest.json")
+        print("manifest.json 文件已上传到 COS")
 
-    print("manifest.json 文件已生成并上传到 COS" if upload_to_cos else "manifest.json 文件已生成在本地")
+    # 将软硬更新表写入 update.json
+    update_path = 'update.json'
+    with open(update_path, 'w', encoding='utf-8') as f:
+        json.dump(dirs_to_update, f, ensure_ascii=False, indent=4)
+    print("update.json 文件已生成")
