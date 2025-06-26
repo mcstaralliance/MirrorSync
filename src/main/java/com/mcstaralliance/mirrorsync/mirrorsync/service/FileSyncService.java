@@ -83,7 +83,7 @@ public class FileSyncService {
             CompletableFuture.allOf(completableFutures).join();
             
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            logger.error("Error in sync files, ", e);
         } finally {
             if (executorService != null) {
                 executorService.shutdownNow();
