@@ -193,10 +193,10 @@ if __name__ == '__main__':
 
     # 可选：将目录更新信息写入另一个文件
     if dirs_to_update:
-        dirs_manifest_path = 'dirs_manifest.json'
-        with open(dirs_manifest_path, 'w', encoding='utf-8') as f:
+        dir_manifest_path = 'dir_manifest.json'
+        with open(dir_manifest_path, 'w', encoding='utf-8') as f:
             json.dump(dirs_to_update, f, ensure_ascii=False, indent=4)
-        print(f"dirs_manifest.json 文件已生成")
+        print(f"dir_manifest.json 文件已生成")
 
     # 提示文件已经生成
     print("manifest.json 文件已生成")
@@ -206,5 +206,5 @@ if __name__ == '__main__':
         upload_file_to_cos(manifest_path, "lastupdate/manifest.json")
         print("manifest.json 文件已上传到 COS")
         if dirs_to_update:
-            upload_file_to_cos(dirs_manifest_path, "lastupdate/dirs_manifest.json")
+            upload_file_to_cos(dir_manifest_path, "lastupdate/dir_manifest.json")
 
