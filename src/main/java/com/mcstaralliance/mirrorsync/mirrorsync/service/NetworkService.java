@@ -16,8 +16,10 @@ import org.apache.http.util.EntityUtils;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.net.URI;
 import java.nio.channels.*;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.util.List;
@@ -51,10 +53,10 @@ public class NetworkService implements AutoCloseable {
 
     public void downloadFile(URI remote, Path local) throws IOException {
         try (CloseableHttpResponse response = httpClient.execute(new HttpGet(remote));
-             FileChannel localFileChannel = FileChannel.open(local, StandardOpenOption.WRITE);
-             ReadableByteChannel responseContentChannel = Channels.newChannel(response.getEntity().getContent())
+             OutputStream localFileOutputStream = Files.newOutputStream(local, StandardOpenOption.WRITE, StandardOpenOption.TRUNCATE_EXISTING) ;
+
         ) {
-            localFileChannel.transferFrom(responseContentChannel, 0, response.getEntity().getContentLength());
+            response.getEntity().writeTo(localFileOutputStream);
         }
     }
 
