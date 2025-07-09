@@ -5,10 +5,12 @@ import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.mcstaralliance.mirrorsync.mirrorsync.model.RemoteRegistryEntry;
 import com.mcstaralliance.mirrorsync.mirrorsync.model.RemoteUpdateEntry;
+import org.apache.http.HttpHeaders;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
+import org.apache.http.message.BasicHeader;
 import org.apache.http.util.EntityUtils;
 
 import java.io.BufferedReader;
@@ -22,7 +24,17 @@ import java.util.List;
 
 public class NetworkService implements AutoCloseable {
 
-    private final CloseableHttpClient httpClient = HttpClients.createSystem();
+    private final CloseableHttpClient httpClient = HttpClients.custom()
+            .disableCookieManagement()
+            .disableAutomaticRetries()
+            .disableConnectionState()
+            .disableRedirectHandling()
+            .setDefaultHeaders(List.of(
+                    new BasicHeader(HttpHeaders.CACHE_CONTROL, "no-cache, no-store, must-revalidate"),
+                    new BasicHeader(HttpHeaders.PRAGMA, "no-cache"),
+                    new BasicHeader(HttpHeaders.EXPIRES, "0")
+            ))
+            .build();
     private final Gson gson = new Gson();
 
     public boolean shouldCheck() throws IOException {
