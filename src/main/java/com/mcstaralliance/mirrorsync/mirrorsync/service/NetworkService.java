@@ -53,7 +53,7 @@ public class NetworkService implements AutoCloseable {
 
     public void downloadFile(URI remote, Path local) throws IOException {
         try (CloseableHttpResponse response = httpClient.execute(new HttpGet(remote));
-             OutputStream localFileOutputStream = Files.newOutputStream(local, StandardOpenOption.WRITE, StandardOpenOption.TRUNCATE_EXISTING) ;
+             OutputStream localFileOutputStream = Files.newOutputStream(local, StandardOpenOption.WRITE, StandardOpenOption.TRUNCATE_EXISTING)
 
         ) {
             response.getEntity().writeTo(localFileOutputStream);
