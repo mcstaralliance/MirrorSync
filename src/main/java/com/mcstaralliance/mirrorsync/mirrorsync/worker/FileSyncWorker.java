@@ -58,27 +58,26 @@ public class FileSyncWorker implements Runnable {
 
         try {
             if (!shouldDownload(localFilePath)) {
-                logger.info("Registry entry ({}) with local ({}) is up to date!", registryEntry.filename(), localFilePath);
+                logger.info("[MirrorSync] Registry entry ({}) with local ({}) is up to date!", registryEntry.filename(), localFilePath);
                 return;
             }
 
-            logger.info("Start syncing registry entry ({})", registryEntry.filename());
+            logger.info("[MirrorSync] Start syncing registry entry ({})", registryEntry.filename());
 
             ensureExists(localFilePath);
 
             networkService.downloadFile(URI.create(registryEntry.downloadUrl()), localFilePath);
 
-            logger.info("Downloaded registry entry ({}) to local ({}) from remote ({})", registryEntry.filename(), localFilePath, registryEntry.downloadUrl());
+            logger.info("[MirrorSync] Downloaded registry entry ({}) to local ({}) from remote ({})", registryEntry.filename(), localFilePath, registryEntry.downloadUrl());
 
             if (!Arrays.equals(checkSumOf(localFilePath), getRemoteDigest())) {
-                String message = String.format("Registry entry (%s) check sum failed", registryEntry.filename());
+                String message = String.format("[MirrorSync] Registry entry (%s) check sum failed", registryEntry.filename());
                 logger.warn(message);
                 throw new RuntimeException(message);
             }
-            logger.info("Synced registry entry ({}) from remote ({}) to local ({})", registryEntry.filename(), registryEntry.downloadUrl(), localFilePath);
-
+            logger.info("[MirrorSync] Synced registry entry ({}) from remote ({}) to local ({})", registryEntry.filename(), registryEntry.downloadUrl(), localFilePath);
         } catch (IOException e) {
-            throw new RuntimeException(String.format("Sync registry entry (%s) failed", registryEntry.filename()), e);
+            throw new RuntimeException(String.format("[MirrorSync] Sync registry entry (%s) failed", registryEntry.filename()), e);
         }
     }
 
