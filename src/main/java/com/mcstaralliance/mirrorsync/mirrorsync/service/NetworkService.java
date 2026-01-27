@@ -40,6 +40,7 @@ public class NetworkService implements AutoCloseable {
     private final Gson gson = new Gson();
 
     public boolean shouldCheck() throws IOException {
+        // TODO 测试
         try (CloseableHttpResponse response = httpClient.execute(new HttpGet("https://resource.mcstaralliance.com/lastupdate/switch.txt"))) {
             return Boolean.parseBoolean(EntityUtils.toString(response.getEntity()));
         }

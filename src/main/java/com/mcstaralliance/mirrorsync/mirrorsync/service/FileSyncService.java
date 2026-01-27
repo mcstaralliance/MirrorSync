@@ -60,7 +60,8 @@ public class FileSyncService {
 
             logger.info("Retried remote registry entries: {}", remoteRegistryEntries);
 
-            executorService = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
+           // executorService = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
+            executorService = Executors.newFixedThreadPool(2);
 
             // To make compiler happy
             final ExecutorService finalExecutorService = executorService;
