@@ -7,7 +7,6 @@ import org.slf4j.Logger;
 
 import java.io.IOException;
 import java.net.URI;
-import java.nio.channels.FileChannel;
 import java.nio.file.*;
 import java.security.MessageDigest;
 import java.util.Arrays;
@@ -85,8 +84,12 @@ public class FileSyncWorker implements Runnable {
     private byte[] checkSumOf(Path local) throws IOException {
         MessageDigest digest = this.digest.get();
         digest.reset();
-        try (FileChannel fileChannel = FileChannel.open(local, StandardOpenOption.READ)) {
-            digest.update(fileChannel.map(FileChannel.MapMode.READ_ONLY, 0L, fileChannel.size()));
+        try (var inputStream = Files.newInputStream(local, StandardOpenOption.READ)) {
+            byte[] buffer = new byte[8192];
+            int bytesRead;
+            while ((bytesRead = inputStream.read(buffer)) != -1) {
+                digest.update(buffer, 0, bytesRead);
+            }
             return digest.digest();
         }
     }
