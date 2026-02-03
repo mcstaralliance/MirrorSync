@@ -6,6 +6,7 @@ import com.mcstaralliance.mirrorsync.mirrorsync.model.RemoteRegistryEntry;
 import com.mcstaralliance.mirrorsync.mirrorsync.worker.FileDeleteWorker;
 import com.mcstaralliance.mirrorsync.mirrorsync.worker.FileSyncWorker;
 import com.mojang.logging.LogUtils;
+import com.sun.jna.Platform;
 import org.slf4j.Logger;
 
 import java.io.IOException;
@@ -37,10 +38,12 @@ public class FileSyncService {
 
     public void sync(Path minecraftPath) {
 
+        FileSystemService fileSystemService = Platform.isWindows() ? new WindowsFileSystemService() : new StandardFileSystemService();
+
         ExecutorService executorService = null;
 
         try (NetworkService networkService = new NetworkService()) {
-            logger.info("Checking whether we need to do sync files...");
+            logger.info("[MirrorSync] Checking whether we need to do sync files...");
 
             boolean shouldCheck;
 
@@ -50,45 +53,45 @@ public class FileSyncService {
                 throw new RuntimeException("Check sync flag failed", e);
             }
 
-            logger.info("Sync flag: {}", shouldCheck);
+            logger.info("[MirrorSync] Sync flag: {}", shouldCheck);
 
             if (!shouldCheck) return;
 
-            logger.info("Minecraft path: {}", minecraftPath);
+            logger.info("[MirrorSync] Minecraft path: {}", minecraftPath);
 
             List<RemoteRegistryEntry> remoteRegistryEntries = networkService.retrieveRemoteRegistryEntries();
 
-            logger.info("Retried remote registry entries: {}", remoteRegistryEntries);
+            logger.info("[MirrorSync] Retried remote registry entries: {}", remoteRegistryEntries);
 
-           // executorService = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
-            executorService = Executors.newFixedThreadPool(2);
+//            executorService = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
+            executorService = Executors.newFixedThreadPool(16);
 
             // To make compiler happy
             final ExecutorService finalExecutorService = executorService;
 
             @SuppressWarnings("rawtypes")
             CompletableFuture[] completableFutures = remoteRegistryEntries.stream()
-                    .map(entry -> WithRetry.withRetry(new FileSyncWorker(entry, minecraftPath, networkService, messageDigest::get), 3, finalExecutorService))
+                    .map(entry -> WithRetry.withRetry(new FileSyncWorker(fileSystemService, entry, minecraftPath, networkService, messageDigest::get), 3, finalExecutorService))
                     .toArray(CompletableFuture[]::new);
 
             CompletableFuture.allOf(completableFutures).join();
 
             List<RemoteUpdateEntry> remoteUpdateEntries = networkService.retrieveRemoteUpdateEntries();
 
-            logger.info("Retried remote update entries: {}", remoteUpdateEntries);
+            logger.info("[Mirror Sync] Retried remote update entries: {}", remoteUpdateEntries);
 
             completableFutures = remoteUpdateEntries.stream()
-                    .map(entry -> WithRetry.withRetry(new FileDeleteWorker(entry, minecraftPath), 3, finalExecutorService))
+                    .map(entry -> WithRetry.withRetry(new FileDeleteWorker(fileSystemService, entry, minecraftPath), 3, finalExecutorService))
                     .toArray(CompletableFuture[]::new);
 
             CompletableFuture.allOf(completableFutures).join();
             
         } catch (IOException e) {
-            logger.error("Error in sync files, ", e);
+            logger.error("[MirrorSync] Error in sync files, ", e);
         } finally {
             if (executorService != null) {
                 executorService.shutdownNow();
-                logger.info("Shutdown sync executor service");
+                logger.info("[MirrorSync] Shutdown sync executor service");
             }
         }
     }

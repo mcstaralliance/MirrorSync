@@ -5,6 +5,8 @@ import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.mcstaralliance.mirrorsync.mirrorsync.model.RemoteRegistryEntry;
 import com.mcstaralliance.mirrorsync.mirrorsync.model.RemoteUpdateEntry;
+import org.apache.http.Header;
+import org.apache.http.HttpEntity;
 import org.apache.http.HttpHeaders;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
@@ -16,12 +18,10 @@ import org.apache.http.util.EntityUtils;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.io.OutputStream;
 import java.net.URI;
-import java.nio.channels.*;
-import java.nio.file.Files;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
-import java.nio.file.StandardOpenOption;
 import java.util.List;
 
 public class NetworkService implements AutoCloseable {
@@ -37,10 +37,10 @@ public class NetworkService implements AutoCloseable {
                     new BasicHeader(HttpHeaders.EXPIRES, "0")
             ))
             .build();
+
     private final Gson gson = new Gson();
 
     public boolean shouldCheck() throws IOException {
-        // TODO 测试
         try (CloseableHttpResponse response = httpClient.execute(new HttpGet("https://resource.mcstaralliance.com/lastupdate/switch.txt"))) {
             return Boolean.parseBoolean(EntityUtils.toString(response.getEntity()));
         }
@@ -52,18 +52,25 @@ public class NetworkService implements AutoCloseable {
         }
     }
 
-    public void downloadFile(URI remote, Path local) throws IOException {
-        try (CloseableHttpResponse response = httpClient.execute(new HttpGet(remote));
-             OutputStream localFileOutputStream = Files.newOutputStream(local, StandardOpenOption.WRITE, StandardOpenOption.TRUNCATE_EXISTING)
+    public void downloadFile(URI remote, Path local, FileSystemService fileSystemService) throws IOException {
+        try (CloseableHttpResponse response = httpClient.execute(new HttpGet(remote))) {
+            HttpEntity entity = response.getEntity();
 
-        ) {
-            response.getEntity().writeTo(localFileOutputStream);
+//            if (entity.getContentLength() <= 0) {
+//                System.out.println("Oops");
+//            }
+
+            fileSystemService.saveBytesTo(local, entity.getContent(), entity.getContentLength());
         }
     }
 
     public List<RemoteUpdateEntry> retrieveRemoteUpdateEntries() throws IOException {
         try (CloseableHttpResponse response = httpClient.execute(new HttpGet("https://resource.mcstaralliance.com/lastupdate/dir_manifest.json"))) {
-            return gson.fromJson(new BufferedReader(new InputStreamReader(response.getEntity().getContent())), new TypeToken<>() {});
+
+            HttpEntity entity = response.getEntity();
+            Header contentEncoding = entity.getContentEncoding();
+            Charset encoding = contentEncoding == null ? StandardCharsets.UTF_8 : contentEncoding.getValue() == null ? StandardCharsets.UTF_8 : Charset.forName(contentEncoding.getValue());
+            return gson.fromJson(new BufferedReader(new InputStreamReader(entity.getContent(), encoding)), new TypeToken<>() {});
         }
     }
 
