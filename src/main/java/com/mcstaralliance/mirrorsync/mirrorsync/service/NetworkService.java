@@ -8,6 +8,7 @@ import com.mcstaralliance.mirrorsync.mirrorsync.model.RemoteUpdateEntry;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHeaders;
+import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.CloseableHttpClient;
@@ -31,6 +32,9 @@ public class NetworkService implements AutoCloseable {
             .disableAutomaticRetries()
             .disableConnectionState()
             .disableRedirectHandling()
+            .setDefaultRequestConfig(RequestConfig.custom()
+                    .setContentCompressionEnabled(true)
+                    .build())
             .setDefaultHeaders(List.of(
                     new BasicHeader(HttpHeaders.CACHE_CONTROL, "no-cache, no-store, must-revalidate"),
                     new BasicHeader(HttpHeaders.PRAGMA, "no-cache"),
@@ -56,9 +60,9 @@ public class NetworkService implements AutoCloseable {
         try (CloseableHttpResponse response = httpClient.execute(new HttpGet(remote))) {
             HttpEntity entity = response.getEntity();
 
-//            if (entity.getContentLength() <= 0) {
-//                System.out.println("Oops");
-//            }
+            if (entity.getContentLength() <= 0) {
+                System.out.println("Oops");
+            }
 
             fileSystemService.saveBytesTo(local, entity.getContent(), entity.getContentLength());
         }
