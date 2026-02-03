@@ -28,11 +28,6 @@ public class WindowsFileSystemService implements FileSystemService {
         boolean FlushViewOfFile(Pointer lpBaseAddress, NativeLong dwNumberOfBytesToFlush);
     }
 
-    private void preAllocate(WinNT.HANDLE hFile, long size) {
-        LocalKernel32.INSTANCE.SetFilePointerEx(hFile, size, null, 0); // 0 = FILE_BEGIN
-        LocalKernel32.INSTANCE.SetEndOfFile(hFile);
-        LocalKernel32.INSTANCE.SetFilePointerEx(hFile, 0, null, 0); // 回到开头准备写入
-    }
 
     private void streamWrite(WinNT.HANDLE hFile, InputStream is, String absPath) throws IOException {
         byte[] buffer = new byte[65536];
@@ -45,13 +40,13 @@ public class WindowsFileSystemService implements FileSystemService {
     }
 
     @Override
-    public void saveBytesTo(Path path, InputStream inputStream, long length) throws IOException {
+    public void saveBytesTo(Path path, InputStream inputStream) throws IOException {
         String absPath = path.toAbsolutePath().toString();
         Path tempPath = path.resolveSibling(path.getFileName().toString() + ".tmp");
         String absTempPath = tempPath.toAbsolutePath().toString();
 
         try {
-            internalSave(absTempPath, inputStream, length);
+            internalSave(absTempPath, inputStream);
         } catch (IOException e) {
             try { Files.deleteIfExists(tempPath); } catch (Exception ignored) {}
             throw e;
@@ -71,7 +66,7 @@ public class WindowsFileSystemService implements FileSystemService {
     }
 
 
-    private void internalSave(String absTempPath, InputStream inputStream, long length) throws IOException {
+    private void internalSave(String absTempPath, InputStream inputStream) throws IOException {
         WinNT.HANDLE hFile = LocalKernel32.INSTANCE.CreateFile(
                 absTempPath,
                 WinNT.GENERIC_READ | WinNT.GENERIC_WRITE,
@@ -87,35 +82,7 @@ public class WindowsFileSystemService implements FileSystemService {
         }
 
         try {
-            if (length <= 0) {
-                streamWrite(hFile, inputStream, absTempPath);
-                return;
-            }
-
-            try (ReadableByteChannel sourceChannel = Channels.newChannel(inputStream)) {
-                preAllocate(hFile, length);
-
-                WinNT.HANDLE hMapping = LocalKernel32.INSTANCE.CreateFileMapping(
-                        hFile, null, WinNT.PAGE_READWRITE, 0, 0, null);
-                if (hMapping == null) throw new IOException("Mapping failed for temp file: " + absTempPath);
-
-                try {
-                    Pointer pAddress = LocalKernel32.INSTANCE.MapViewOfFile(hMapping, WinNT.FILE_MAP_WRITE, 0, 0, 0);
-                    if (pAddress == null) throw new IOException("View failed for temp file:" + absTempPath);
-
-                    try {
-                        ByteBuffer buffer = pAddress.getByteBuffer(0, length);
-                        while (sourceChannel.read(buffer) != -1) {
-                            if (!buffer.hasRemaining()) break;
-                        }
-                        LocalKernel32.INSTANCE.FlushViewOfFile(pAddress, new NativeLong(length));
-                    } finally {
-                        LocalKernel32.INSTANCE.UnmapViewOfFile(pAddress);
-                    }
-                } finally {
-                    LocalKernel32.INSTANCE.CloseHandle(hMapping);
-                }
-            }
+            streamWrite(hFile, inputStream, absTempPath);
         } finally {
             LocalKernel32.INSTANCE.CloseHandle(hFile);
         }

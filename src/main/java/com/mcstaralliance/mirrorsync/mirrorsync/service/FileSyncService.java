@@ -55,8 +55,6 @@ public class FileSyncService {
 
             logger.info("[MirrorSync] Sync flag: {}", shouldCheck);
 
-            shouldCheck = true;
-
             if (!shouldCheck) return;
 
             logger.info("[MirrorSync] Minecraft path: {}", minecraftPath);

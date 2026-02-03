@@ -59,12 +59,7 @@ public class NetworkService implements AutoCloseable {
     public void downloadFile(URI remote, Path local, FileSystemService fileSystemService) throws IOException {
         try (CloseableHttpResponse response = httpClient.execute(new HttpGet(remote))) {
             HttpEntity entity = response.getEntity();
-
-            if (entity.getContentLength() <= 0) {
-                System.out.println("Oops");
-            }
-
-            fileSystemService.saveBytesTo(local, entity.getContent(), entity.getContentLength());
+            fileSystemService.saveBytesTo(local, entity.getContent());
         }
     }
 

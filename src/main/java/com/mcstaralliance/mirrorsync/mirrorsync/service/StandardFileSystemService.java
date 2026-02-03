@@ -12,10 +12,10 @@ import java.nio.file.StandardOpenOption;
 
 public class StandardFileSystemService implements FileSystemService {
     @Override
-    public void saveBytesTo(Path path, InputStream inputStream, long length) throws IOException {
+    public void saveBytesTo(Path path, InputStream inputStream) throws IOException {
         try (ReadableByteChannel src = Channels.newChannel(inputStream);
              FileChannel dest = FileChannel.open(path, StandardOpenOption.CREATE, StandardOpenOption.WRITE, StandardOpenOption.TRUNCATE_EXISTING)) {
-             dest.transferFrom(src, 0, length <= 0 ? Long.MAX_VALUE : length);
+             dest.transferFrom(src, 0, Long.MAX_VALUE);
         }
     }
 

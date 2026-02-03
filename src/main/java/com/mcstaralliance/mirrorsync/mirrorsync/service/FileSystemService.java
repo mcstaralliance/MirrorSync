@@ -7,7 +7,7 @@ import java.nio.ByteBuffer;
 import java.nio.file.Path;
 
 public interface FileSystemService {
-    void saveBytesTo(Path path, InputStream inputStream, long length) throws IOException;
+    void saveBytesTo(Path path, InputStream inputStream) throws IOException;
 
     ByteBuffer readBytesFrom(Path path) throws IOException;
 
