@@ -11,6 +11,7 @@ import java.net.URI;
 import java.nio.file.*;
 import java.security.MessageDigest;
 import java.util.HexFormat;
+import java.util.concurrent.CompletionException;
 import java.util.function.Supplier;
 
 public class FileSyncWorker implements Runnable {
@@ -63,15 +64,15 @@ public class FileSyncWorker implements Runnable {
 
 
             String actualHash = checkSumOf(localFilePath).toLowerCase();
-            if (!registryEntry.hash().equalsIgnoreCase(actualHash)) {
+            if (!actualHash.equalsIgnoreCase(registryEntry.hash())) {
                 String message = String.format("Registry entry (%s) check sum failed, expected %s, actual %s", registryEntry.filename(), registryEntry.hash(), actualHash);
                 logger.warn("[MirrorSync] " + message);
-                throw new RuntimeException(message);
+                throw new IOException(message);
             }
 
             logger.info("[MirrorSync] Synced registry entry ({}) from remote ({}) to local ({})", registryEntry.filename(), registryEntry.downloadUrl(), localFilePath);
         } catch (IOException e) {
-            throw new RuntimeException(String.format("[MirrorSync] Sync registry entry (%s) failed", registryEntry.filename()), e);
+            throw new CompletionException(String.format("[MirrorSync] Sync registry entry (%s) failed", registryEntry.filename()), e);
         }
     }
 

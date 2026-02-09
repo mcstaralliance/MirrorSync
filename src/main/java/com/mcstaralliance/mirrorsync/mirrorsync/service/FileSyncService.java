@@ -86,7 +86,7 @@ public class FileSyncService {
 
             CompletableFuture.allOf(completableFutures).join();
             
-        } catch (IOException e) {
+        } catch (Exception e) {
             logger.error("[MirrorSync] Error in sync files, ", e);
         } finally {
             if (executorService != null) {
