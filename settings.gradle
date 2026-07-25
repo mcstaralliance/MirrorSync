@@ -1,32 +1,12 @@
 pluginManagement {
     repositories {
-        // 国内加速优先，避免 fooyay-resolver HTTPS 握手失败
-        maven { url "https://maven.aliyun.com/repository/public" }
-        
-        // Minecraft Forge 官方仓库
-        maven {
-            name = 'MinecraftForge'
-            url = 'https://maven.minecraftforge.net/'
-        }
-
-        // Gradle 官方插件仓库
+        maven { url = 'https://maven.aliyun.com/repository/gradle-plugin' }
         gradlePluginPortal()
     }
 }
 
-// plugins {
-//     id 'org.gradle.toolchains.foojay-resolver-convention' version '0.7.0'
-// }
+plugins {
+    id 'org.gradle.toolchains.foojay-resolver-convention' version '1.0.0'
+}
 
 rootProject.name = 'MirrorSync'
-
-dependencyResolutionManagement {
-    repositories {
-        // 国内加速
-        maven { url "https://maven.aliyun.com/repository/public" }
-        // Minecraft Forge 官方仓库
-        maven { url "https://maven.minecraftforge.net/" }
-        // Maven Central
-        mavenCentral()
-    }
-}

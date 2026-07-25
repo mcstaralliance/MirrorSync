@@ -1,6 +1,6 @@
 # MirrorSync
 
-一个用于 Minecraft Forge 客户端的自动文件同步 Mod，支持从远程服务器自动下载、更新和清理游戏文件。
+一个用于 Minecraft 1.21.1 NeoForge 客户端的自动文件同步 Mod，支持从远程服务器自动下载、更新和清理游戏文件。
 
 ## 📋 功能特性
 
@@ -198,12 +198,14 @@ Mod 会在游戏启动时自动运行：
 
 ## 📦 构建项目
 
+构建环境需要 Java 21。
+
 ```bash
 # Windows
-.\gradlew.bat build "-Dnet.minecraftforge.gradle.check.certs=false"
+.\gradlew.bat build
 
 # Linux/Mac
-./gradlew build -Dnet.minecraftforge.gradle.check.certs=false
+./gradlew build
 ```
 
 构建产物位于 `build/libs/` 目录。
